@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EGCS Interview WhatsApp Sender</title>
+<style>
+:root{--bg:#f4f6f4;--card:#fff;--tx:#1b2a22;--mu:#66736b;--bd:#dce3de;--gr:#128c4a;--gr2:#e3f4ea;--rd:#c0392b;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#111714;--card:#1a231e;--tx:#e8efe9;--mu:#93a39a;--bd:#2c3a32;--gr:#2fbf71;--gr2:#173525;--rd:#ef6b5b;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.4}
+.w{max-width:860px;margin:0 auto;padding:14px}
+h1{font-size:20px;margin:4px 0 2px}h2{font-size:16px;margin:0 0 8px}
+.mu{color:var(--mu);font-size:13px}
+.tabs{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5}
+.tab{background:var(--card);color:var(--tx);border:1px solid var(--bd);padding:9px 14px;border-radius:8px;cursor:pointer;font-size:14px}
+.tab.on{background:var(--gr);color:#fff;border-color:var(--gr)}
+.pane{display:none}.pane.on{display:block}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin:10px 0}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.card.done{background:var(--gr2);border-color:var(--gr)}
+.n{font-weight:600}
+.f{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.f>label{flex:1;min-width:150px;font-size:12px;color:var(--mu);display:flex;flex-direction:column;gap:3px}
+input,select,textarea{padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;font-size:14px;width:100%}
+textarea{min-height:130px;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+button,a.b{background:var(--gr);color:#fff;border:0;border-radius:8px;padding:10px 14px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;display:inline-block}
+button.s{background:transparent;color:var(--mu);border:1px solid var(--bd);font-weight:500}
+button.d{background:transparent;color:var(--rd);border:1px solid var(--bd);padding:5px 9px;font-weight:500}
+.act{display:flex;gap:6px;flex-shrink:0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{text-align:left;padding:6px;border-bottom:1px solid var(--bd);vertical-align:top}
+.tw{overflow-x:auto}
+.bad{color:var(--rd)}
+pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:10px;font-size:13px}
+.pill{display:inline-block;background:var(--gr2);color:var(--gr);border-radius:20px;padding:1px 9px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="w">
+<h1>EGCS Interview – WhatsApp Sender</h1>
+<div class="mu" id="stat"></div>
+<div class="tabs">
+ <button class="tab on" data-t="send">Send</button>
+ <button class="tab" data-t="bulk">Bulk add</button>
+ <button class="tab" data-t="reg">Register</button>
+ <button class="tab" data-t="msg">Message</button>
+</div>
+
+<!-- SEND -->
+<div class="pane on" id="p-send">
+ <div class="f">
+  <label>Interview date<select id="fd"></select></label>
+  <label>Search<input id="q" type="search" placeholder="Parent, child or phone"></label>
+  <label>Show<select id="fs"><option value="all">All</option><option value="todo">Not sent yet</option><option value="sent">Sent</option></select></label>
+ </div>
+ <div id="list"></div>
+ <button class="s" id="reset">Clear all “sent” marks</button>
+</div>
+
+<!-- BULK -->
+<div class="pane" id="p-bulk">
+ <div class="card">
+  <h2>Paste many children at once</h2>
+  <p class="mu">Copy rows from Excel / Google Sheets / your list and paste below. Columns can be like: <b>#, AppNo, Name, Grade, Parent, Phone</b> (the # and AppNo are optional, the old date column is ignored – the date below is used).</p>
+  <div class="f">
+   <label>Interview date for this batch<input type="date" id="bd" value="2026-11-03"></label>
+   <label>Reporting time<input type="time" id="bt" value="08:00"></label>
+  </div>
+  <textarea id="bulk" placeholder="1	EGCS27-0022	ABDIRIZAK MOHAMED	Grade 2	MARIAM UMAR	721944938"></textarea>
+  <div class="f"><button id="bprev">Preview</button></div>
+  <div id="bres"></div>
+ </div>
+</div>
+
+<!-- REGISTER -->
+<div class="pane" id="p-reg">
+ <div class="card">
+  <h2>Register one child manually</h2>
+  <div class="f">
+   <label>Child name<input id="rn"></label>
+   <label>Grade<input id="rg" placeholder="e.g. Grade 4"></label>
+  </div>
+  <div class="f">
+   <label>Parent name<input id="rp"></label>
+   <label>Phone<input id="rph" placeholder="0712345678"></label>
+  </div>
+  <div class="f">
+   <label>App No (optional)<input id="ra"></label>
+   <label>Interview date<input type="date" id="rd" value="2026-11-03"></label>
+   <label>Time<input type="time" id="rt" value="08:00"></label>
+  </div>
+  <button id="radd">Save</button> <span class="mu" id="rmsg"></span>
+ </div>
+ <div class="card">
+  <div class="row"><h2>All registered children</h2><button class="s" id="csv">Download CSV backup</button></div>
+  <div class="tw"><table><thead><tr><th>Child</th><th>Grade</th><th>Parent</th><th>Phone</th><th>Date</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+ </div>
+</div>
+
+<!-- MESSAGE -->
+<div class="pane" id="p-msg">
+ <div class="card">
+  <h2>Message template</h2>
+  <p class="mu">Placeholders: <b>{parent}</b> <b>{children}</b> (names + grades) <b>{child}</b> (child/children) <b>{s}</b> (""/"s") <b>{comes}</b> (comes/come) <b>{date}</b> <b>{time}</b>. Use *text* for bold in WhatsApp.</p>
+  <textarea id="tpl" style="min-height:360px"></textarea>
+  <div class="f"><button id="tsave">Save template</button><button class="s" id="trest">Restore default</button></div>
+  <h2>Preview</h2><pre id="tprev"></pre>
+ </div>
+</div>
+</div>
+
+<script>
+const DEF_TPL=`Dear {parent},
+
+We are pleased to inform you that an interview has been scheduled for your {child}, {children}, as part of the admission process to the next class.
+
+*Interview Details:*
+• Date: {date}
+• Reporting Time: {time}
+
+Kindly ensure that you accompany your {child} to school on the scheduled date and bring the following:
+
+1. Your National ID card – this will serve as your gate pass to access the school.
+2. A copy of your {child}'s birth certificate{s}.
+3. Your {child}'s former school uniform{s} – kindly ensure that your {child} {comes} dressed in their previous school's uniform.
+4. Writing materials – please ensure your {child} {comes} with a pen, pencil, ruler and eraser.
+
+Please ensure that you arrive promptly by {time} with all the required documents and materials.
+
+Thank you for choosing our school. We look forward to meeting you and your {child}.
+
+Kind regards,
+School Administration
+Embakasi Garrison Comprehensive School`;
+
+const SEED=`ABDIRIZAK MOHAMED|Grade 2|MARIAM UMAR|721944938
+UBEID ALI ADAN|Grade 8|ALI ADAN ABDULLAHI|715764581
+HUTEIFA ALI ADAN|Grade 8|ALI ADAN ABDULLAHI|715764581
+ABASS ALI ADAN|Grade 2|ALI ADAN ABDULLAHI|715764581
+KAREN ESTHER|Grade 3|JACKLINE CHEMUTAI|710885842
+ZAWADI J. AKENGA|Grade 7|MILISA AKENGA|720033703
+KIMBERLY MWARI|Grade 4|MUENI MUSILI|717823375
+HAKIM BARAKA|Grade 7|IRENE MWANGANGI|704198585
+CHRIS ISAAC ODHIAMBO|Grade 8|AUSTINE ODHIAMBO|726138126
+VALERIE SHANELY|Grade 7|AUSTINE ODHIAMBO|726138126
+ABIGAEL ATIENO ODHIAMBO|Grade 2|AUSTINE ODHIAMBO|726138126
+SALIM MAHAT ALID|Grade 6|ABDINOOR ALIO HASSAN|725135820
+ISAACK LENGES|Grade 7|SAMWEL KOPASAR|704780106
+JOSEPH SAIDIMU|Grade 1|SAMWEL KOPASAR|704780106
+MAWSUR YUSSUF ABDI|Grade 4|YUSSUF ABDI IBRAHIM|720475531
+SAMUEL GACHINYA|Grade 3|LYDIA RUIGU|723321606
+IAN OMWANGU AMBALE|Grade 2|GEORGE OMWANGU|716178761
+WESLY LUPIN OMOLLO|PP1|GEORGE OMWANGU|716178761
+EMMANUEL SIMIYU|Grade 5|CHRISTINE OPICHO|746239377
+GOODWILL BARAKA|Grade 4|CHRISTINE OPICHO|746239377
+HAPPY TESTIMONY|Grade 5|CHRISTINE OPICHO|746239377
+DYLAN KASILI|Grade 8|KEN KASILI|704312193
+ZUBER ABDULLAH|Grade 9|HANNAH MOHAMED|710901798
+SUHELFA ABDULLAH|Grade 9|HANNAH MOHAMED|710901798
+JOY CHUMTAI|Grade 7|FELIX SATIA|714004597
+ABRAHAM KIPCHUMBA|Grade 7|FELIX SATIA|714004597
+JOEL KIMUTAI|Grade 1|FELIX SATIA|714004597
+EWAN RANDELL|Grade 2|CALVET WAKOYI|721229553
+ELISHA MWANGI|Grade 6|KENNEDY ONYANGO|720026775
+AGNES WANGUI|Grade 5|KENNEDY ONYANGO|723246573
+NEYMAR FADHILI|Grade 8|LORNA WAMBUI|704059664
+ROVAN ODUOR|Grade 5|LORNA WAMBUI|704059664
+SHIRNICE WEKESA|Grade 4|LORNA WAMBUI|704059664
+AGREY AMBETSA|Grade 6|VIOLET F OKIYA|722316075
+LIAM WAMBUGU|Grade 1|ROBERT KIBUGI WAITHAKA|725099959
+SHARON NDINDA|Grade 5|DUNCAN MUNTWOKI|702262355
+ABIGAEL NYAKIO KARIMI|Grade 5|ANN KARIMI NYAGA|705097507
+KIDEMI MARANDU|Grade 5|MAXWELL MARANDU|729863465
+YASMIN PRECIOUD OCHIENG|Grade 7|COLLINS OLUOCH|727900058
+LARVETH MASESE|Grade 6|AMON MAINGO|700691116
+PRECIOUS JOY|Grade 4|AMON MAINGO|700691116
+ANGEL MELANY|Grade 5|ONYANGO|720532739
+MACROM MARTIN ONYANGO|Grade 4|ONYANGO|720532739
+TERESIA M. KIOKO|Grade 7|MAGDALINE K. KITUSA|746069152
+EMILIAN N. KIOKO|Grade 1|MAGDALINE K. KITUSA|746069152
+HEZRON NYAMWEA|Grade 5|DANIEL GISEMBA|716536270`;
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tc=s=>s.toLowerCase().replace(/(^|[\s.\-'])([a-z])/g,(m,a,b)=>a+b.toUpperCase());
+const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+
+let recs=ld("egcs_recs",null), sent=ld("egcs_sent2",{}), tpl=ld("egcs_tpl",DEF_TPL);
+if(!recs){recs=SEED.split("\n").map(l=>{const [n,g,p,ph]=l.split("|");return mk(n,g,p,ph,"2026-11-02","08:00","")});sv("egcs_recs",recs)}
+function mk(n,g,p,ph,date,time,app){return{id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),n:n.trim(),g:g.trim(),p:p.trim(),ph:normPhone(ph),date,time,app:app||""}}
+function normPhone(x){let d=String(x).replace(/\D/g,"");if(d.startsWith("254"))d=d.slice(3);else if(d.startsWith("0"))d=d.slice(1);return /^[17]\d{8}$/.test(d)?d:""}
+const ord=n=>n+(n%10==1&&n!=11?"st":n%10==2&&n!=12?"nd":n%10==3&&n!=13?"rd":"th");
+function fmtDate(iso){const [y,m,d]=iso.split("-").map(Number);const D=new Date(y,m-1,d);return D.toLocaleDateString("en-GB",{weekday:"long"})+", "+ord(d)+" "+D.toLocaleDateString("en-GB",{month:"long"})+" "+y}
+function fmtTime(t){const [h,m]=t.split(":").map(Number);return (h%12||12)+":"+String(m).padStart(2,"0")+" "+(h<12?"AM":"PM")}
+function build(G){
+  const m=G.kids.length>1,a=G.kids.map(c=>tc(c.n)+" ("+c.g+")");
+  const ch=a.length>1?a.slice(0,-1).join(", ")+" and "+a[a.length-1]:a[0];
+  const map={parent:G.parent,children:ch,child:m?"children":"child",s:m?"s":"",comes:m?"come":"comes",date:fmtDate(G.date),time:fmtTime(G.time)};
+  return tpl.replace(/\{(\w+)\}/g,(x,k)=>k in map?map[k]:x);
+}
+function groups(){
+  const gs=[];
+  recs.forEach(r=>{const k=[r.p.toUpperCase(),r.ph,r.date,r.time].join("|");let G=gs.find(x=>x.base===k);
+    if(!G){G={base:k,parent:tc(r.p),phone:r.ph,date:r.date,time:r.time,kids:[]};gs.push(G)}G.kids.push(r)});
+  gs.forEach(G=>G.key=G.base+"|"+G.kids.map(c=>c.id).sort().join(","));
+  return gs.sort((a,b)=>a.date.localeCompare(b.date));
+}
+function render(){
+  const gs=groups();
+  // date filter
+  const dates=[...new Set(gs.map(g=>g.date))].sort(),cur=$("fd").value||"all";
+  $("fd").innerHTML='<option value="all">All dates</option>'+dates.map(d=>`<option value="${d}">${fmtDate(d)}</option>`).join("");
+  $("fd").value=dates.includes(cur)||cur=="all"?cur:"all";
+  const q=$("q").value.toLowerCase(),fs=$("fs").value,fd=$("fd").value;
+  const nSent=gs.filter(g=>sent[g.key]).length;
+  $("stat").textContent=`${recs.length} children · ${gs.length} messages · ${nSent} sent · ${gs.length-nSent} remaining`;
+  const L=$("list");L.innerHTML="";let shown=0;
+  gs.forEach(G=>{
+    if(fd!="all"&&G.date!=fd)return;
+    if(fs=="todo"&&sent[G.key])return;if(fs=="sent"&&!sent[G.key])return;
+    if(q&&!(G.parent+G.phone+G.kids.map(c=>c.n).join(" ")).toLowerCase().includes(q))return;
+    shown++;
+    const d=document.createElement("div");d.className="card row"+(sent[G.key]?" done":"");
+    d.innerHTML=`<div><div class="n">${esc(G.parent)} <span class="pill">${fmtDate(G.date).split(",")[1].trim().replace(/ 2026/,"")}</span></div>
+     <div class="mu">${G.kids.map(c=>esc(tc(c.n))+" · "+esc(c.g)).join("<br>")}</div>
+     <div class="${G.phone?"mu":"bad"}">${G.phone?"+254 "+G.phone:"⚠ Invalid phone number"}</div></div><div class="act"></div>`;
+    const A=d.querySelector(".act");
+    if(G.phone){const a=document.createElement("a");a.className="b";a.target="_blank";a.rel="noopener";
+      a.href="https://wa.me/254"+G.phone+"?text="+encodeURIComponent(build(G));
+      a.textContent=sent[G.key]?"Resend":"Send on WhatsApp";
+      a.onclick=()=>{sent[G.key]=1;sv("egcs_sent2",sent);setTimeout(render,400)};A.appendChild(a)}
+    if(sent[G.key]){const u=document.createElement("button");u.className="s";u.textContent="Undo";u.onclick=()=>{delete sent[G.key];sv("egcs_sent2",sent);render()};A.appendChild(u)}
+    L.appendChild(d);
+  });
+  if(!shown)L.innerHTML='<p class="mu">Nothing to show.</p>';
+  // records table
+  $("tb").innerHTML=recs.slice().reverse().map(r=>`<tr><td>${esc(tc(r.n))}</td><td>${esc(r.g)}</td><td>${esc(tc(r.p))}</td><td class="${r.ph?"":"bad"}">${r.ph?"0"+r.ph:"invalid"}</td><td>${r.date}</td><td><button class="d" data-id="${r.id}">✕</button></td></tr>`).join("");
+  $("tprev").textContent=gs.length?build(gs.find(g=>g.kids.length>1)||gs[0]):"";
+}
+// tabs
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tab,.pane").forEach(e=>e.classList.remove("on"));
+  b.classList.add("on");$("p-"+b.dataset.t).classList.add("on");render()});
+["q","fs","fd"].forEach(i=>$(i).oninput=render);
+$("reset").onclick=()=>{if(confirm("Clear all sent marks?")){sent={};sv("egcs_sent2",sent);render()}};
+$("tb").onclick=e=>{const id=e.target.dataset.id;if(id&&confirm("Delete this child?")){recs=recs.filter(r=>r.id!=id);sv("egcs_recs",recs);render()}};
+
+// manual register
+$("radd").onclick=()=>{
+  const n=$("rn").value,g=$("rg").value,p=$("rp").value,ph=$("rph").value;
+  if(!n.trim()||!p.trim()||!normPhone(ph)){$("rmsg").textContent="Enter child, parent and a valid phone number.";$("rmsg").className="bad";return}
+  recs.push(mk(n,g||"-",p,ph,$("rd").value,$("rt").value,$("ra").value));sv("egcs_recs",recs);
+  ["rn","rg","rp","rph","ra"].forEach(i=>$(i).value="");
+  $("rmsg").textContent="Saved ✓";$("rmsg").className="mu";render();
+};
+
+// bulk
+let pending=[];
+function parseBulk(txt,date,time){
+  const out=[],bad=[];
+  txt.split(/\r?\n/).forEach(line=>{
+    if(!line.trim()||/appno|phone/i.test(line)&&/name|parent/i.test(line))return;
+    let c=line.includes("\t")?line.split("\t"):line.includes(",")?line.split(","):line.split(/\s{2,}/);
+    c=c.map(x=>x.trim()).filter(Boolean);
+    let app="",ph="",g="";const t=[];
+    c.forEach((x,i)=>{
+      if(/^\d{1,3}$/.test(x)&&i==0)return;
+      if(/^[A-Za-z]{2,6}\d*-\d+$/.test(x)){app=x;return}
+      if(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(x))return;
+      if(/^\+?\d[\d\s]{7,}$/.test(x)&&!ph){ph=x;return}
+      if(/^(grade\s*\d+|gr\.?\s*\d+|pp\s?\d|pre-?\s?\w+|class\s*\d+|form\s*\d+)$/i.test(x)&&!g){g=x;return}
+      t.push(x)});
+    if(t.length<2||!normPhone(ph)){bad.push(line);return}
+    out.push(mk(t[0],g||"-",t[t.length-1],ph,date,time,app));
+  });
+  return{out,bad};
+}
+$("bprev").onclick=()=>{
+  const {out,bad}=parseBulk($("bulk").value,$("bd").value,$("bt").value);
+  const ex=new Set(recs.map(r=>[r.n,r.p,r.date].join("|").toUpperCase()));
+  const seen=new Set(),fresh=[];let dup=0;
+  out.forEach(r=>{const k=[r.n,r.p,r.date].join("|").toUpperCase();if(ex.has(k)||seen.has(k)){dup++;return}seen.add(k);fresh.push(r)});
+  pending=fresh;
+  $("bres").innerHTML=`<p><b>${fresh.length}</b> ready to add for <b>${fmtDate($("bd").value)}</b> at ${fmtTime($("bt").value)}`+(dup?` · ${dup} duplicate(s) skipped`:"")+(bad.length?` · <span class="bad">${bad.length} row(s) not understood</span>`:"")+`</p>`+
+   (bad.length?`<pre class="bad">${esc(bad.join("\n"))}</pre>`:"")+
+   (fresh.length?`<div class="tw"><table><tr><th>Child</th><th>Grade</th><th>Parent</th><th>Phone</th></tr>${fresh.map(r=>`<tr><td>${esc(tc(r.n))}</td><td>${esc(r.g)}</td><td>${esc(tc(r.p))}</td><td>0${r.ph}</td></tr>`).join("")}</table></div><p><button id="bgo">Add ${fresh.length} to the list</button></p>`:"");
+  const go=$("bgo");if(go)go.onclick=()=>{recs=recs.concat(pending);sv("egcs_recs",recs);$("bulk").value="";$("bres").innerHTML=`<p class="n">Added ${pending.length} ✓ – open the Send tab.</p>`;pending=[];render()};
+};
+
+// template
+$("tpl").value=tpl;
+$("tsave").onclick=()=>{tpl=$("tpl").value;sv("egcs_tpl",tpl);render()};
+$("trest").onclick=()=>{tpl=DEF_TPL;$("tpl").value=tpl;sv("egcs_tpl",tpl);render()};
+
+// csv
+$("csv").onclick=()=>{
+  const rows=[["AppNo","Name","Grade","Parent","Phone","Date","Time"]].concat(recs.map(r=>[r.app,r.n,r.g,r.p,"0"+r.ph,r.date,r.time]));
+  const csv=rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="egcs-interviews.csv";a.click();
+};
+render();
+</script>
+</body>
+</html>
